@@ -1,0 +1,54 @@
+{{!
+
+/**
+ *  SFW2 - SimpleFrameWork
+ *
+ *  Copyright (C) 2025  Stefan Paproth
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+ *
+ */
+
+}}
+
+<style>
+    /** TODO: Fix webpack.config **/
+    .sfw2-no-border-on-xs {
+        @media /*(min-width: 576px) and*/ (max-width: 576px) {
+            border: none !important;
+        }
+    }
+</style>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="card sfw2-no-border-on-xs" style="max-width: 25rem;">
+            <div class="card-body">
+                <h2 class="mb-5 text-secondary">Abmelden</h2>
+                <div class="text-secondary pb-2">
+                   Du bist zur Zeit als <strong>{{user_name}}</strong> angemeldet. Möchtest du dich abmelden?
+                </div>
+                <div class="d-grid gap-2 pb-4 pt-5">
+                    <button
+                        type="button"
+                        class="btn btn-secondary sfw2-button-send"
+                        data-sfw2-url="/logout" {{!TODO No Hardlinks!}}
+                    >
+                        abmelden
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

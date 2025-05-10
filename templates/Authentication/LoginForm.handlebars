@@ -1,0 +1,89 @@
+{{!
+
+/**
+ *  SFW2 - SimpleFrameWork
+ *
+ *  Copyright (C) 2025  Stefan Paproth
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+ *
+ */
+
+}}
+
+<style>
+    /** TODO: Fix webpack.config **/
+    .sfw2-no-border-on-xs {
+        @media /*(min-width: 576px) and*/ (max-width: 576px) {
+            border: none !important;
+        }
+    }
+</style>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="card sfw2-no-border-on-xs" style="max-width: 25rem;">
+            <div class="card-body">
+                <h2 class="mb-4 text-secondary">Anmelden</h2>
+                <form id="sfw2-login-form">
+                    <div class="mb-3">
+                        <label for="sfw2-login-input-user" class="form-label text-secondary">Benutzername</label>
+                        <input
+                            id="sfw2-login-input-user"
+                            type="email"
+                            class="form-control"
+                            aria-describedby="emailHelp"
+                            name="usr"
+                            value=""
+                        />
+                    </div>
+                    <div class="mb-2">
+                        <label for="sfw2-login-input-password" class="form-label text-secondary">Passwort</label>
+                        <input
+                            id="sfw2-login-input-password"
+                            class="form-control sfw2-submit-on-enter"
+                            type="password"
+                            name="pwd"
+                            value=""
+                        />
+                    </div>{{!
+                    <div class="mb-3 text-end">
+                        <a
+                            class="sfw2-clickable sfw2-send-ajax-button "
+                            title="Du hast Dein Passwort verbaselt? Hier hast Du die Möglichkeit, es wieder rückzusetzen."
+                            data-sfw2-dialog-title="Passwort rücksetzen"
+                            data-sfw2-dialog-button-caption="okay"
+                            data-sfw2-form-id="#sfw2-forgot-password-form"
+                            data-sfw2-url="/authentication/reset"
+                        >
+                            Passwort rücksetzen
+                        </a>
+                    </div>}}
+                    <div class="d-grid gap-2 pb-4 pt-3">
+                        <button
+                            type="button"
+                            class="btn btn-secondary sfw2-button-send"
+                            data-sfw2-form-id="#sfw2-login-form"
+                            data-sfw2-url="/"  {{!TODO No Hardlinks!}}
+                        >
+                            anmelden
+                        </button>
+                    </div>
+                    <div class="d-grid gap-2 pt-3" style="border-top: 1px solid #dee2e6;">
+                        <button id="passkey" class="text-secondary btn btn-light" type="button">Anmelden mit passkey ...</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
