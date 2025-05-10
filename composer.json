@@ -12,7 +12,14 @@
     ],
 
     "require": {
-        "php": "^8.3"
+        "php": "^8.3",
+
+        "psr/http-server-middleware": "^1.0.2",
+        "league/oauth2-client": "^2.8",
+
+        "sfw2/exception": "^2.0"
+
+
 
     },
     "require-dev": {
