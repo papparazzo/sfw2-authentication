@@ -33,7 +33,7 @@ use SFW2\Database\QueryHelper;
 
 class Authenticator
 {
-    private const MAX_RETRIES = 100;
+    private const int MAX_RETRIES = 100;
 
     public function __construct(
         protected readonly DatabaseInterface $database
@@ -43,7 +43,7 @@ class Authenticator
     /**
      * @throws DatabaseException
      */
-    public function authenticateUser(string $emailAddr, #[SensitiveParameter] string $pwd): User
+    public function authenticateUser(string $emailAddr, #[SensitiveParameter] string $pwd): UserEntity
     {
         $stmt = /** @lang MySQL */
             "SELECT `Id`, `FirstName`, `LastName`, `Email`, `Password`, `Admin`, " .
@@ -56,20 +56,27 @@ class Authenticator
         $row = $queryHelper->selectRow($stmt, [$emailAddr]);
 
         if (empty($row)) {
-            return new User($this->database);
+            return new UserEntity();
         }
 
         if ($row['OnTime'] == 0) {
-            return new User($this->database);
+            return new UserEntity();
         }
 
         if (!$this->checkPassword($row['Id'], $row['Password'], $pwd)) {
             $this->updateRetries($row['Id'], false);
-            return new User($this->database);
+            return new UserEntity();
         }
 
         $this->updateRetries($row['Id'], true);
-        return (new User($this->database))->fill($row);
+
+        return new UserEntity(
+            $row['Id'],
+    $row['Admin'] == '1',
+            $row['FirstName'],
+            $row['LastName'],
+            $row['Email'],
+        );
     }
 
     /**

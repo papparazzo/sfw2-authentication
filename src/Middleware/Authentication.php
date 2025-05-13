@@ -24,6 +24,7 @@ declare(strict_types=1);
 
 namespace SFW2\Authentication\Middleware;
 
+use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
@@ -31,7 +32,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use SFW2\Database\DatabaseInterface;
+use SFW2\Authentication\UserEntity;
+use SFW2\Authentication\UserRepository;
 use SFW2\Exception\HttpExceptions\Status4xx\HttpStatus403Forbidden;
 use SFW2\Exception\HttpExceptions\Status4xx\HttpStatus422UnprocessableContent;
 use SFW2\Session\SessionInterface;
@@ -39,9 +41,8 @@ use SFW2\Session\SessionInterface;
 final class Authentication implements MiddlewareInterface
 {
     public function __construct(
-       # private readonly PermissionInterface $permission,
         private readonly SessionInterface      $session,
-        private readonly DatabaseInterface     $database,
+        private readonly UserRepository        $userRepository,
         private readonly AbstractProvider|null $provider = null
     ) {
 
@@ -49,15 +50,19 @@ final class Authentication implements MiddlewareInterface
 
     /**
      * @inheritDoc
-     * @throws HttpStatus403Forbidden
+     * @throws HttpStatus403Forbidden | HttpStatus422UnprocessableContent
+     * @throws IdentityProviderException
+     * @throws GuzzleException
+     * @throws Exception
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         try {
             return $handler->handle($request);
         } catch (HttpStatus403Forbidden $e) {
-            $userId = $this->session->getGlobalEntry(User::class);
-            $user = (new User($this->database))->loadUserById($userId);
+            $userId = $this->session->getGlobalEntry(UserEntity::class);
+
+            $user = $this->userRepository->loadUserById($userId);
 
             if ($user->isAuthenticated() || $this->provider === null) {
                 throw $e;
