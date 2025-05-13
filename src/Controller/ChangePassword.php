@@ -26,7 +26,8 @@ use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use SFW2\Authentication\Authenticator;
-use SFW2\Authentication\User;
+use SFW2\Authentication\UserEntity;
+use SFW2\Authentication\UserRepository;
 use SFW2\Authority\Helper\LoginHelperTrait;
 use SFW2\Database\DatabaseException;
 use SFW2\Database\DatabaseInterface;
@@ -54,7 +55,8 @@ final class ChangePassword
     public function __construct(
         private readonly DatabaseInterface $database,
         private readonly SessionInterface $session,
-        private readonly RenderInterface $render
+        private readonly RenderInterface $render,
+        private readonly UserRepository $userRepository
     ) {
     }
 
@@ -132,11 +134,11 @@ final class ChangePassword
                 ]);
             }
         } else {
-            $userId = $this->session->getGlobalEntry(User::class);
+            $userId = $this->session->getGlobalEntry(UserEntity::class);
             if(is_null($userId)) {
                 throw new HttpStatus403Forbidden();
             }
-            $user = (new User($this->database))->loadUserById($userId);
+            $user = $this->userRepository->loadUserById($userId);
             if(!$user->isAuthenticated()) {
                 throw new HttpStatus403Forbidden();
             }

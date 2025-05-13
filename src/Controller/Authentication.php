@@ -26,7 +26,8 @@ use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use SFW2\Authentication\Authenticator;
-use SFW2\Authentication\User;
+use SFW2\Authentication\UserEntity;
+use SFW2\Authentication\UserRepository;
 use SFW2\Database\DatabaseException;
 use SFW2\Database\DatabaseInterface;
 use SFW2\Render\RenderInterface;
@@ -36,10 +37,11 @@ use SFW2\Validator\Exception;
 final class Authentication
 {
     public function __construct(
-        protected SessionInterface       $session,
-        protected DatabaseInterface      $database,
-        private readonly RenderInterface $render,
-        protected ?string                $loginResetPath = null
+        private readonly SessionInterface  $session,
+        private readonly DatabaseInterface $database,
+        private readonly RenderInterface   $render,
+        private readonly UserRepository    $userRepository,
+        protected ?string                  $loginResetPath = null
     ) {
     }
 
@@ -49,9 +51,9 @@ final class Authentication
      */
     public function getLogin(Request $request, Response $response, array $data): Response
     {
-        $userId = $this->session->getGlobalEntry(User::class);
+        $userId = $this->session->getGlobalEntry(UserEntity::class);
 
-        $user = (new User($this->database))->loadUserById($userId);
+        $user = $this->userRepository->loadUserById($userId);
 
         if (!$user->isAuthenticated()) {
             return $this->render->render($request, $response, [], 'SFW2\\Authority\\Authentication\\LoginForm');
@@ -81,7 +83,7 @@ final class Authentication
             return $response->withStatus(StatusCodeInterface::STATUS_UNPROCESSABLE_ENTITY);
         }
 
-        $this->session->setGlobalEntry(User::class, $user->getUserId());
+        $this->session->setGlobalEntry(UserEntity::class, $user->getUserId());
         $this->session->regenerateSession();
 
         $data = [];
@@ -108,7 +110,7 @@ final class Authentication
 
     public function postLogout(Request $request, Response $response, array $data): Response
     {
-        $this->session->delGlobalEntry(User::class);
+        $this->session->delGlobalEntry(UserEntity::class);
         $this->session->regenerateSession();
         return
             $this->render->render(
