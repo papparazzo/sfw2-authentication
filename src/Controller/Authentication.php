@@ -56,13 +56,13 @@ final class Authentication
         $user = $this->userRepository->loadUserById($userId);
 
         if (!$user->isAuthenticated()) {
-            return $this->render->render($request, $response, [], 'SFW2\\Authority\\Authentication\\LoginForm');
+            return $this->render->render($request, $response, [], 'SFW2\\Authentication\\Authentication\\LoginForm');
         }
 
         $data = [
             'user_name' => $user->getFullName()
         ];
-        return $this->render->render($request, $response, $data, 'SFW2\\Authority\\Authentication\\LogoutForm');
+        return $this->render->render($request, $response, $data, 'SFW2\\Authentication\\Authentication\\LogoutForm');
     }
 
     /**

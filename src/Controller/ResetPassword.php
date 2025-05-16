@@ -64,7 +64,7 @@ class ResetPassword
     public function index(Request $request, Response $response): Response
     {
         if(isset($request->getQueryParams()['getForm'])) {
-            return $this->render->render($request, $response, [], 'SFW2\\Authority\\ResetPassword\\ResetPasswordForm');
+            return $this->render->render($request, $response, [], 'SFW2\\Authentication\\ResetPassword\\ResetPasswordForm');
         }
 
         $ruleset = new Ruleset();
@@ -115,7 +115,7 @@ class ResetPassword
         $this->mailer->send(
             $user->getMailAddr(),
             'Neues Passwort',
-            'SFW2\\Authority\\ResetPassword\\ConfirmPasswordResetEmail',
+            'SFW2\\Authentication\\ResetPassword\\ConfirmPasswordResetEmail',
             $data
         );
 

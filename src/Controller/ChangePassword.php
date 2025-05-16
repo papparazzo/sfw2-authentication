@@ -171,14 +171,14 @@ final class ChangePassword
     private function getForm(Request $request, Response $response): Response
     {
         if(!isset($request->getQueryParams()['hash'])) {
-            return $this->render->render($request, $response, [], 'SFW2\\Authority\\ChangePassword\\ChangePassword');
+            return $this->render->render($request, $response, [], 'SFW2\\Authentication\\ChangePassword\\ChangePassword');
         }
 
         $hash = $request->getQueryParams()['hash'];
         $this->validateHash($hash);
 
         return $this->render->render(
-            $request, $response, ['hash' => $hash], 'SFW2\\Authority\\ChangePassword\\ChangePassword'
+            $request, $response, ['hash' => $hash], 'SFW2\\Authentication\\ChangePassword\\ChangePassword'
         );
     }
 
