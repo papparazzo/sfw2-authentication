@@ -21,7 +21,7 @@
         "sfw2/exception": "^2.0",
         "sfw2/interoperability": "^1.0",
         "sfw2/render": "^1.0",
-        "sfw2/session": "^5.0",
+        "sfw2/session": "^7.0",
         "sfw2/validator": "^6.0"
     },
     "require-dev": {

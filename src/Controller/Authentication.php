@@ -51,7 +51,7 @@ final class Authentication
      */
     public function getLogin(Request $request, Response $response, array $data): Response
     {
-        $userId = $this->session->getGlobalEntry(UserEntity::class);
+        $userId = $this->session->getEntry(UserEntity::class);
 
         $user = $this->userRepository->loadUserById($userId);
 
@@ -83,7 +83,7 @@ final class Authentication
             return $response->withStatus(StatusCodeInterface::STATUS_UNPROCESSABLE_ENTITY);
         }
 
-        $this->session->setGlobalEntry(UserEntity::class, $user->getUserId());
+        $this->session->setEntry(UserEntity::class, $user->getUserId());
         $this->session->regenerateSession();
 
         $data = [];
@@ -110,7 +110,7 @@ final class Authentication
 
     public function postLogout(Request $request, Response $response, array $data): Response
     {
-        $this->session->delGlobalEntry(UserEntity::class);
+        $this->session->deleteEntry(UserEntity::class);
         $this->session->regenerateSession();
         return
             $this->render->render(

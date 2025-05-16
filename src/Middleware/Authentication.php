@@ -60,7 +60,7 @@ final class Authentication implements MiddlewareInterface
         try {
             return $handler->handle($request);
         } catch (HttpStatus403Forbidden $e) {
-            $userId = $this->session->getGlobalEntry(UserEntity::class);
+            $userId = $this->session->getEntry(UserEntity::class);
 
             $user = $this->userRepository->loadUserById($userId);
 
@@ -88,11 +88,11 @@ final class Authentication implements MiddlewareInterface
             $authorizationUrl = $this->provider->getAuthorizationUrl();
 
             // Get the state generated for you and store it to the session.
-            $this->session->setGlobalEntry('oauth2state', $this->provider->getState());
+            $this->session->setEntry('oauth2state', $this->provider->getState());
 
             // Optional, only required when PKCE is enabled.
             // Get the PKCE code generated for you and store it to the session.
-            $this->session->setGlobalEntry('oauth2pkceCode', $this->provider->getPkceCode());
+            $this->session->setEntry('oauth2pkceCode', $this->provider->getPkceCode());
 
             // Redirect the user to the authorization URL.
             header('Location: ' . $authorizationUrl);
@@ -101,16 +101,16 @@ final class Authentication implements MiddlewareInterface
 
         // Check given state against previously stored one to mitigate CSRF attack
         if (
-            empty($_GET['state']) || !$this->session->hasGlobalEntry('oauth2state') ||
-            $_GET['state'] !== $this->session->getGlobalEntry('oauth2state')
+            empty($_GET['state']) || !$this->session->hasEntry('oauth2state') ||
+            $_GET['state'] !== $this->session->getEntry('oauth2state')
         ) {
-            $this->session->delGlobalEntry('oauth2state');
+            $this->session->deleteEntry('oauth2state');
             throw new HttpStatus422UnprocessableContent('Invalid state');
         }
 
         // Optional, only required when PKCE is enabled.
         // Restore the PKCE code stored in the session.
-        $this->provider->setPkceCode($this->session->getGlobalEntry('oauth2pkceCode'));
+        $this->provider->setPkceCode($this->session->getEntry('oauth2pkceCode'));
 
         // Try to get an access token using the authorization code grant.
         $tokens = $this->provider->getAccessToken('authorization_code', [

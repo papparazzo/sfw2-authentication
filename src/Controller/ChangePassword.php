@@ -134,7 +134,7 @@ final class ChangePassword
                 ]);
             }
         } else {
-            $userId = $this->session->getGlobalEntry(UserEntity::class);
+            $userId = $this->session->getEntry(UserEntity::class);
             if(is_null($userId)) {
                 throw new HttpStatus403Forbidden();
             }
