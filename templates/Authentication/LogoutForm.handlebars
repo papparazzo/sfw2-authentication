@@ -36,7 +36,7 @@
             <div class="card-body">
                 <h2 class="mb-5 text-secondary">Abmelden</h2>
                 <div class="text-secondary pb-2">
-                   Du bist zur Zeit als <strong>{{user_name}}</strong> angemeldet. Möchtest du dich abmelden?
+                   Du bist zurzeit als <strong>{{user_name}}</strong> angemeldet. Möchtest du dich abmelden?
                 </div>
                 <div class="d-grid gap-2 pb-4 pt-5">
                     <button
@@ -47,8 +47,61 @@
                         abmelden
                     </button>
                 </div>
+                <div class="d-grid gap-2 pt-3" style="border-top: 1px solid #dee2e6;">
+                    <button
+                        id="sfw2-passkey-register"
+                        type="button"
+                        class="text-secondary btn btn-light"
+                    >passkey registrieren...</button>
+                </div>
+                <div class="pt-2">
+                    <span id="sfw2-error-text" class="fs-6 fw-lighter text-danger"></span>
+                    <span id="sfw2-success-text" class="fs-6 fw-lighter text-success"></span>
+                </div>
             </div>
         </div>
     </div>
 </div>
+<script>
+    const { startRegistration } = SimpleWebAuthnBrowser;
+
+    const elemBegin = document.getElementById('sfw2-passkey-register');
+    const elemSuccess = document.getElementById('sfw2-success-text');
+    const elemError = document.getElementById('sfw2-error-text');
+
+    elemBegin.addEventListener('click', async () => {
+
+        elemSuccess.innerHTML = '';
+        elemError.innerHTML = '';
+
+        const resp = await fetch('/generate-registration-options');
+        const optionsJSON = await resp.json();
+
+        let attResp;
+        try {
+            attResp = await startRegistration({ optionsJSON });
+        } catch (error) {
+            if (error.name === 'InvalidStateError') {
+                elemError.innerText = 'Error: Authenticator was probably already registered by user';
+            } else {
+                elemError.innerText = error;
+            }
+            return;
+        }
+
+        const verificationResp = await fetch('/verify-registration', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(attResp),
+        });
+
+        const verificationJSON = await verificationResp.json();
+
+        if (verificationJSON && verificationJSON.verified) {
+            elemSuccess.innerHTML = 'Success!';
+        } else {
+            elemError.innerHTML = `Oh no, something went wrong! Response: <pre>${verificationJSON.reason}</pre>`;
+        }
+    });
+</script>
 
