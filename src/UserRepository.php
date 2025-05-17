@@ -48,7 +48,7 @@ class UserRepository
 
         $stmt = /** @lang MySQL */
             "SELECT `Id`, `FirstName`, `LastName`, `Email`, `Password`, `Admin` " .
-            "FROM `{TABLE_PREFIX}_authority_user` " .
+            "FROM `{TABLE_PREFIX}_authentication_user` " .
             "WHERE `Id` = %s " .
             "AND `Active` = '1'";
 
@@ -69,7 +69,7 @@ class UserRepository
     {
         $stmt = /** @lang MySQL */
             "SELECT `Id`, `FirstName`, `LastName`, `Email`, `Password`, `Admin` " .
-            "FROM `{TABLE_PREFIX}_authority_user` " .
+            "FROM `{TABLE_PREFIX}_authentication_user` " .
             "WHERE `Email` = %s";
 
         $queryHelper = new QueryHelper($this->database);

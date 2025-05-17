@@ -48,7 +48,7 @@ class Authenticator
         $stmt = /** @lang MySQL */
             "SELECT `Id`, `FirstName`, `LastName`, `Email`, `Password`, `Admin`, " .
             "IF(CURRENT_TIMESTAMP > `LastTry` + POW(2, `Retries`) - 1, 1, 0) AS `OnTime` " .
-            "FROM `{TABLE_PREFIX}_authority_user` " .
+            "FROM `{TABLE_PREFIX}_authentication_user` " .
             "WHERE `Email` LIKE %s " .
             "AND `Active` = '1'";
 
@@ -87,7 +87,7 @@ class Authenticator
         $hash = uniqid(more_entropy: true);
 
         $stmt = /** @lang MySQL */
-            "UPDATE `{TABLE_PREFIX}_authority_user` " .
+            "UPDATE `{TABLE_PREFIX}_authentication_user` " .
             "SET `ResetExpireDate` = %s, `ResetHash` = %s " .
             "WHERE `Email` = %s ";
 
@@ -109,7 +109,7 @@ class Authenticator
     {
         $stmt = /** @lang MySQL */
             "SELECT `Password` " .
-            "FROM `{TABLE_PREFIX}_authority_user` " .
+            "FROM `{TABLE_PREFIX}_authentication_user` " .
             "WHERE `Id` = %s";
 
         $queryHelper = new QueryHelper($this->database);
@@ -128,7 +128,7 @@ class Authenticator
     {
          $stmt = /** @lang MySQL */
             "SELECT `Id` " .
-            "FROM `{TABLE_PREFIX}_authority_user` " .
+            "FROM `{TABLE_PREFIX}_authentication_user` " .
             "WHERE `ResetExpireDate` >= NOW() " .
             "AND `ResetHash` = %s";
 
@@ -148,7 +148,7 @@ class Authenticator
     private function resetPassword(int $userId, #[SensitiveParameter] string $newPwd): bool
     {
         $stmt = /** @lang MySQL */
-            "UPDATE `{TABLE_PREFIX}_authority_user` " .
+            "UPDATE `{TABLE_PREFIX}_authentication_user` " .
             "SET `Password` = %s, `Retries` = 0, `ResetExpireDate` = NULL, `ResetHash` = '' " .
             "WHERE `Id` = %s";
 
@@ -162,7 +162,7 @@ class Authenticator
      */
     private function updateRetries(int $loginId, bool $sucess): void
     {
-        $stmt = "UPDATE `{TABLE_PREFIX}_authority_user` ";
+        $stmt = "UPDATE `{TABLE_PREFIX}_authentication_user` ";
         if ($sucess) {
             $stmt .= "SET `Retries` = 0, `ResetExpireDate` = NULL, `ResetHash` = '' ";
         } else {
@@ -188,7 +188,7 @@ class Authenticator
         }
 
         if (password_needs_rehash($hash, PASSWORD_DEFAULT)) {
-            $stmt = "UPDATE `{TABLE_PREFIX}_authority_user` SET `Password` = %s WHERE `Id` = %s ";
+            $stmt = "UPDATE `{TABLE_PREFIX}_authentication_user` SET `Password` = %s WHERE `Id` = %s ";
             $newh = password_hash($password, PASSWORD_DEFAULT);
             $this->database->update($stmt, [$newh, $userId]);
         }
