@@ -25,13 +25,15 @@ declare(strict_types=1);
 namespace SFW2\Authentication\Controller;
 
 use Exception;
-use JsonException;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\SimpleCache\InvalidArgumentException;
-use Random\RandomException;
+use SFW2\Authentication\PasskeyRepository;
 use SFW2\Authentication\UserEntity;
 use SFW2\Authentication\UserRepository;
 use SFW2\Database\DatabaseException;
-use SFW2\Database\DatabaseInterface;
+use SFW2\Exception\HttpExceptions\Status4xx\HttpStatus400BadRequest;
 use SFW2\Exception\HttpExceptions\Status4xx\HttpStatus403Forbidden;
 use SFW2\Session\SessionInterface;
 
@@ -44,16 +46,18 @@ use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
 use Throwable;
 use Webauthn\AttestationStatement\AttestationStatementSupportManager;
 use Webauthn\AttestationStatement\NoneAttestationStatementSupport;
+use Webauthn\AuthenticatorAssertionResponse;
+use Webauthn\AuthenticatorAssertionResponseValidator;
 use Webauthn\AuthenticatorAttestationResponse;
 use Webauthn\AuthenticatorAttestationResponseValidator;
 use Webauthn\CeremonyStep\CeremonyStepManagerFactory;
 use Webauthn\Denormalizer\WebauthnSerializerFactory;
+use Webauthn\Exception\AuthenticatorResponseVerificationException;
 use Webauthn\PublicKeyCredential;
 use Webauthn\PublicKeyCredentialCreationOptions;
 use Webauthn\PublicKeyCredentialOptions;
 use Webauthn\PublicKeyCredentialRequestOptions;
 use Webauthn\PublicKeyCredentialRpEntity;
-use Webauthn\PublicKeyCredentialSource;
 use Webauthn\PublicKeyCredentialUserEntity;
 
 final class Passkey
@@ -63,12 +67,20 @@ final class Passkey
 
     private readonly XSRFToken $challenge;
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function __construct(
-        private readonly SessionInterface  $session,
-        private readonly UserRepository    $userRepository,
-        private readonly DatabaseInterface $database
+        private readonly SessionInterface   $session,
+        private readonly UserRepository     $userRepository,
+        private readonly PasskeyRepository  $passkeyRepository,
+        private readonly ContainerInterface $container
     ) {
         $this->challenge = new XSRFToken(new SessionSimpleCache($this->session, 'challenge'));;
+
+        $this->appName = 'SSO';
+        $this->host = $this->container->get('site.host');
     }
 
     /**
@@ -84,7 +96,7 @@ final class Passkey
     }
 
     /**
-     * @throws RandomException
+     * @throws InvalidArgumentException
      */
     public function getAuthenticationOptions(Request $request, Response $response, array $data): Response
     {
@@ -119,10 +131,12 @@ final class Passkey
         $attestationResponse = $publicKeyCredential->response;
 
         $csmFactory = new CeremonyStepManagerFactory();
-        // https://webauthn-doc.spomky-labs.com/v5.2/pure-php/advanced-behaviours/dealing-with-localhost#enabling-http-localhost-for-development
-        $csmFactory->setAllowedOrigins([
-            'http://localhost:8080',
-        ]);
+        if($this->container->get('site.debugMode')) {
+            // https://webauthn-doc.spomky-labs.com/v5.2/pure-php/advanced-behaviours/dealing-with-localhost#enabling-http-localhost-for-development
+            $csmFactory->setAllowedOrigins([
+                'http://localhost:8080',
+            ]);
+        }
 
         $creationCSM = $csmFactory->creationCeremony();
 
@@ -133,7 +147,65 @@ final class Passkey
             $this->getCredentialCreationOptions($user, $this->challenge->getToken()),
             $this->host
         );
-        $this->store($user, $publicKeyCredentialSource);
+        $this->passkeyRepository->saveCredentialSource($publicKeyCredentialSource);
+
+        $response->getBody()->write(json_encode(['verified' => true]));
+        return $response;
+    }
+
+    /**
+     * @throws AuthenticatorResponseVerificationException
+     * @throws InvalidArgumentException
+     * @throws HttpStatus400BadRequest
+     */
+    public function verifyAuthentication(Request $request, Response $response, array $args): Response
+    {
+        // The manager will receive data to load and select the appropriate
+        $attestationStatementSupportManager = AttestationStatementSupportManager::create();
+        $attestationStatementSupportManager->add(NoneAttestationStatementSupport::create());
+
+        $factory = new WebauthnSerializerFactory($attestationStatementSupportManager);
+        $serializer = $factory->create();
+
+        /** @var PublicKeyCredential $publicKeyCredential */
+        $publicKeyCredential = $serializer->deserialize(
+            file_get_contents('php://input'),
+            PublicKeyCredential::class,
+            'json'
+        );
+
+        if (!$publicKeyCredential->response instanceof AuthenticatorAssertionResponse) {
+            $response->getBody()->write(json_encode(['verified' => false]));
+            return $response;
+        }
+
+        $csmFactory = new CeremonyStepManagerFactory();
+
+        if($this->container->get('site.debugMode')) {
+            // https://webauthn-doc.spomky-labs.com/v5.2/pure-php/advanced-behaviours/dealing-with-localhost#enabling-http-localhost-for-development
+            $csmFactory->setAllowedOrigins([
+                'http://localhost:8080',
+            ]);
+        }
+
+        $requestCSM = $csmFactory->requestCeremony();
+        $authenticatorAssertionResponseValidator = AuthenticatorAssertionResponseValidator::create(
+            $requestCSM
+        );
+
+        $publicKeyCredentialSource = $this->passkeyRepository->fetchCredentialSource($publicKeyCredential->rawId);
+
+        $authenticatorAssertionResponseValidator->check(
+            $publicKeyCredentialSource,
+            $publicKeyCredential->response,
+            PublicKeyCredentialRequestOptions::create($this->challenge->getToken()),
+            $this->host,
+            null
+        );
+
+        // TODO: Prüfen: ob user existiert!
+        $this->session->setEntry(UserEntity::class, (int)$publicKeyCredentialSource->userHandle);
+        $this->session->regenerateSession();
 
         $response->getBody()->write(json_encode(['verified' => true]));
         return $response;
@@ -191,20 +263,5 @@ final class Passkey
             throw new HttpStatus403Forbidden('No user logged in');
         }
         return $user;
-    }
-
-    /**
-     * @throws JsonException
-     */
-    private function store(UserEntity $user, PublicKeyCredentialSource $publicKeyCredentialSource): void
-    {
-        $this->database->insert(
-            "INSERT INTO `{TABLE_PREFIX}_authentication_passkey` (`UserId`, `PublicKeyCredentialId`) " .
-            "VALUES (%s, %s)",
-            [
-                $user->getUserId(),
-                $publicKeyCredentialSource->publicKeyCredentialId
-            ]
-        );
     }
 }

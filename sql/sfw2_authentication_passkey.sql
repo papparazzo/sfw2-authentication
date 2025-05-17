@@ -22,11 +22,20 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
 CREATE TABLE IF NOT EXISTS `{TABLE_PREFIX}_authentication_passkey` (
-    `Id` INT(11) UNSIGNED NOT NULL,
+    `Id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
     `UserId` INT(11) UNSIGNED NOT NULL,
-    `PublicKeyCredentialId` VARBINARY(255) NOT NULL
-
+    `PublicKeyCredentialId` VARBINARY(255) NOT NULL,
+    `Type` VARCHAR(32) NOT NULL,
+    `Transports` JSON NOT NULL,
+    `AttestationType` VARCHAR(32) NOT NULL,
+    `TrustPath` JSON NOT NULL,
+    `Aaguid` CHAR(36) NOT NULL,
+    `CredentialPublicKey` VARBINARY(255) NOT NULL,
+    `Counter` INT UNSIGNED NOT NULL DEFAULT 0,
+    `CreatedAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `UpdatedAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`Id`),
+    UNIQUE KEY `idx_credential_id` (`PublicKeyCredentialId`),
+    KEY `idx_user_handle` (`UserId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
-ALTER TABLE `{TABLE_PREFIX}_authentication_passkey` ADD PRIMARY KEY (`Id`);
-ALTER TABLE `{TABLE_PREFIX}_authentication_passkey` MODIFY `Id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT;
