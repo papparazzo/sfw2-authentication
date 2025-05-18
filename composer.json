@@ -16,6 +16,7 @@
 
         "psr/http-server-middleware": "^1.0.2",
         "league/oauth2-client": "^2.8",
+        "web-auth/webauthn-lib": "^5.2.2",
 
         "sfw2/database": "^4.0",
         "sfw2/exception": "^2.0",
