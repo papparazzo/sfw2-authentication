@@ -49,7 +49,7 @@ final class Authentication
      * @throws Exception
      * @throws DatabaseException
      */
-    public function getLogin(Request $request, Response $response, array $data): Response
+    public function getLogin(Request $request, Response $response, array $args): Response
     {
         $userId = $this->session->getEntry(UserEntity::class);
 
@@ -68,7 +68,7 @@ final class Authentication
     /**
      * @throws DatabaseException
      */
-    public function postLogin(Request $request, Response $response, array $data): Response
+    public function postLogin(Request $request, Response $response, array $args): Response
     {
         $auth = new Authenticator($this->database);
         $user = $auth->authenticateUser(
@@ -92,37 +92,33 @@ final class Authentication
         $data['authenticated'] = $user->isAuthenticated();
 
         $request = $request->withAttribute('sfw2_authority', $data);
-        return
-            $this->render->render(
-                $request,
-                $response,
-                [
-                    'title' => 'Anmelden',
-                    'description' => "
-                        Hallo <strong>{$user->getFirstName()}</strong>,<br />
-                        du wurdest erfolgreich angemeldet. 
-                        Zum Abmelden klicke bitte oben rechts auf <strong>abmelden</strong>
-                    ",
-                    'reload' => true
-                ]
-            );
+
+        $data = ['reload' => true];
+
+        if (isset($request->getQueryParams()['showHint'])) {
+            $data['title'] = 'Anmelden';
+            $data['description'] = "
+                Hallo <strong>{$user->getFirstName()}</strong>,<br />
+                du wurdest erfolgreich angemeldet. 
+                Zum Abmelden klicke bitte oben rechts auf <strong>abmelden</strong>
+            ";
+        }
+        return $this->render->render($request, $response, $data);
     }
 
-    public function postLogout(Request $request, Response $response, array $data): Response
+    public function postLogout(Request $request, Response $response, array $args): Response
     {
         $this->session->deleteEntry(UserEntity::class);
         $this->session->regenerateSession();
-        return
-            $this->render->render(
-                $request,
-                $response,
-                [
-                    'title' => 'Abmelden',
-                    'description' =>
-                        'Du wurdest erfolgreich abgemeldet. ' .
-                        'Um dich erneut anzumelden klicke bitte oben rechts auf Login.',
-                    'reload' => true
-                ]
-            );
+
+        $data = ['reload' => true];
+
+        if (isset($request->getQueryParams()['showHint'])) {
+            $data['title'] = 'Abmelden';
+            $data['description'] =
+                'Du wurdest erfolgreich abgemeldet. ' .
+                'Um dich erneut anzumelden klicke bitte oben rechts auf Login.';
+        }
+        return $this->render->render($request, $response, $data);
     }
 }
