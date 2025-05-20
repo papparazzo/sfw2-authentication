@@ -30,6 +30,7 @@ use SensitiveParameter;
 use SFW2\Database\DatabaseException;
 use SFW2\Database\DatabaseInterface;
 use SFW2\Database\QueryHelper;
+use SFW2\Interoperability\User\UserEntity;
 
 class Authenticator
 {

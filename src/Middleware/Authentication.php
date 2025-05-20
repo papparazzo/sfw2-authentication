@@ -32,20 +32,19 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use SFW2\Authentication\UserEntity;
-use SFW2\Authentication\UserRepository;
 use SFW2\Exception\HttpExceptions\Status4xx\HttpStatus403Forbidden;
 use SFW2\Exception\HttpExceptions\Status4xx\HttpStatus422UnprocessableContent;
+use SFW2\Interoperability\User\UserEntity;
+use SFW2\Interoperability\User\UserRepositoryInterface;
 use SFW2\Session\SessionInterface;
 
 final class Authentication implements MiddlewareInterface
 {
     public function __construct(
-        private readonly SessionInterface      $session,
-        private readonly UserRepository        $userRepository,
-        private readonly AbstractProvider|null $provider = null
+        private readonly SessionInterface        $session,
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly AbstractProvider|null   $provider = null
     ) {
-
     }
 
     /**
