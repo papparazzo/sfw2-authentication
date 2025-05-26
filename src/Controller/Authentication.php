@@ -26,8 +26,8 @@ use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use SFW2\Authentication\Authenticator;
-use SFW2\Authentication\UserEntity;
-use SFW2\Authentication\UserRepository;
+use SFW2\Interoperability\User\UserEntity;
+use SFW2\Interoperability\User\UserRepositoryInterface;
 use SFW2\Database\DatabaseException;
 use SFW2\Database\DatabaseInterface;
 use SFW2\Render\RenderInterface;
@@ -37,11 +37,11 @@ use SFW2\Validator\Exception;
 final class Authentication
 {
     public function __construct(
-        private readonly SessionInterface  $session,
-        private readonly DatabaseInterface $database,
-        private readonly RenderInterface   $render,
-        private readonly UserRepository    $userRepository,
-        protected ?string                  $loginResetPath = null
+        private readonly SessionInterface        $session,
+        private readonly DatabaseInterface       $database,
+        private readonly RenderInterface         $render,
+        private readonly UserRepositoryInterface $userRepository,
+        protected ?string                        $loginResetPath = null
     ) {
     }
 

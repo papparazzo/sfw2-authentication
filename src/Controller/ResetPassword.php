@@ -28,7 +28,6 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 use SFW2\Authentication\Authenticator;
-use SFW2\Authentication\UserRepository;
 use SFW2\Interoperability\MailerInterface;
 use SFW2\Interoperability\DateTimeHelperInterface;
 
@@ -42,7 +41,7 @@ use SFW2\Validator\Validators\IsEMailAddress;
 use SFW2\Validator\Validators\IsNotEmpty;
 
 
-use SFW2\Authority\Helper\LoginHelperTrait;
+use SFW2\Authentication\Helper\LoginHelperTrait;
 use Throwable;
 
 class ResetPassword

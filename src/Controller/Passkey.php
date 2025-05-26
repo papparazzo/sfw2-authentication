@@ -30,8 +30,8 @@ use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\SimpleCache\InvalidArgumentException;
 use SFW2\Authentication\PasskeyRepository;
-use SFW2\Authentication\UserEntity;
-use SFW2\Authentication\UserRepository;
+use SFW2\Interoperability\User\UserEntity;
+use SFW2\Interoperability\User\UserRepositoryInterface;
 use SFW2\Database\DatabaseException;
 use SFW2\Exception\HttpExceptions\Status4xx\HttpStatus400BadRequest;
 use SFW2\Exception\HttpExceptions\Status4xx\HttpStatus403Forbidden;
@@ -72,10 +72,10 @@ final class Passkey
      * @throws NotFoundExceptionInterface
      */
     public function __construct(
-        private readonly SessionInterface   $session,
-        private readonly UserRepository     $userRepository,
-        private readonly PasskeyRepository  $passkeyRepository,
-        private readonly ContainerInterface $container
+        private readonly SessionInterface        $session,
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly PasskeyRepository       $passkeyRepository,
+        private readonly ContainerInterface      $container
     ) {
         $this->challenge = new XSRFToken(new SessionSimpleCache($this->session, 'challenge'));;
 

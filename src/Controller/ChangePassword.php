@@ -26,9 +26,9 @@ use Fig\Http\Message\StatusCodeInterface;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use SFW2\Authentication\Authenticator;
-use SFW2\Authentication\UserEntity;
-use SFW2\Authentication\UserRepository;
-use SFW2\Authority\Helper\LoginHelperTrait;
+use SFW2\Interoperability\User\UserEntity;
+use SFW2\Interoperability\User\UserRepositoryInterface;
+use SFW2\Authentication\Helper\LoginHelperTrait;
 use SFW2\Database\DatabaseException;
 use SFW2\Database\DatabaseInterface;
 use SFW2\Exception\HttpExceptions\Status4xx\HttpStatus400BadRequest;
@@ -53,10 +53,10 @@ final class ChangePassword
     use LoginHelperTrait;
 
     public function __construct(
-        private readonly DatabaseInterface $database,
-        private readonly SessionInterface $session,
-        private readonly RenderInterface $render,
-        private readonly UserRepository $userRepository
+        private readonly DatabaseInterface       $database,
+        private readonly SessionInterface        $session,
+        private readonly RenderInterface         $render,
+        private readonly UserRepositoryInterface $userRepository
     ) {
     }
 

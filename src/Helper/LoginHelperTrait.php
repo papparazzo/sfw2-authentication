@@ -20,7 +20,7 @@
  *
  */
 
-namespace SFW2\Authority\Helper;
+namespace SFW2\Authentication\Helper;
 
 trait LoginHelperTrait
 {
