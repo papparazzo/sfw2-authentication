@@ -66,8 +66,13 @@ final class Authentication implements MiddlewareInterface
             if ($user->isAuthenticated() || $this->provider === null) {
                 throw $e;
             }
-            $this->oauthFlow();
-            return $handler->handle($request);
+
+            $user = $this->oauthFlow();
+            $this->session->setEntry(UserEntity::class, $user->getUserId());
+            $this->session->regenerateSession();
+
+            header("Location: /");
+            die();
         }
     }
 
@@ -76,7 +81,7 @@ final class Authentication implements MiddlewareInterface
      * @throws HttpStatus422UnprocessableContent
      * @throws IdentityProviderException
      */
-    private function oauthFlow(): void
+    private function oauthFlow(): UserEntity
     {
 
         if (!isset($_GET['code'])) {
@@ -116,6 +121,15 @@ final class Authentication implements MiddlewareInterface
             'code' => $_GET['code']
         ]);
 
+        $this->session->deleteEntry('oauth2state');
+        $this->session->deleteEntry('oauth2pkceCode');
+
+         // Using the access token, we may look up details about the
+        // resource owner.
+        $resourceOwner = $this->provider->getResourceOwner($tokens);
+
+        $email = $resourceOwner->toArray()['user'];
+
         // We have an access token, which we may use in authenticated
         // requests against the service provider's API.
         echo 'Access Token: ' . $tokens->getToken() . "<br>";
@@ -127,21 +141,17 @@ final class Authentication implements MiddlewareInterface
                 // resource owner.
                 $resourceOwner = $provider->getResourceOwner($tokens);
 
-                var_export($resourceOwner->toArray());
-
-                // The provider provides a way to get an authenticated API request for
-                // the service, using the access token; it returns an object conforming
-                // to Psr\Http\Message\RequestInterface.
-                $request = $provider->getAuthenticatedRequest(
-                    'GET',
-                    'https://service.example.com/resource',
-                    $accessToken
-                );
-        */
-#
-
-        // TODO Redirect to get rid of all unneeded params...
-        die();
+/*
+        // The provider provides a way to get an authenticated API request for
+        // the service, using the access token; it returns an object conforming
+        // to Psr\Http\Message\RequestInterface.
+        $request = $this->provider->getAuthenticatedRequest(
+            'GET',
+            'https://service.example.com/resource',
+            $accessToken
+        );
+  */
+        return $this->userRepository->loadUserByEmailAddress($email);
     }
 
 }
