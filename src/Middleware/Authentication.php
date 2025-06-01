@@ -132,14 +132,10 @@ final class Authentication implements MiddlewareInterface
 
         // We have an access token, which we may use in authenticated
         // requests against the service provider's API.
-        echo 'Access Token: ' . $tokens->getToken() . "<br>";
-        echo 'Refresh Token: ' . $tokens->getRefreshToken() . "<br>";
-        echo 'Expired in: ' . $tokens->getExpires() . "<br>";
-        echo 'Already expired? ' . ($tokens->hasExpired() ? 'expired' : 'not expired') . "<br>";
-        /*
-                // Using the access token, we may look up details about the
-                // resource owner.
-                $resourceOwner = $provider->getResourceOwner($tokens);
+        #echo 'Access Token: ' . $tokens->getToken() . "<br>";
+        #echo 'Refresh Token: ' . $tokens->getRefreshToken() . "<br>";
+        #echo 'Expired in: ' . $tokens->getExpires() . "<br>";
+        #echo 'Already expired? ' . ($tokens->hasExpired() ? 'expired' : 'not expired') . "<br>";
 
 /*
         // The provider provides a way to get an authenticated API request for
