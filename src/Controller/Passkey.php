@@ -50,6 +50,7 @@ use Webauthn\AuthenticatorAssertionResponse;
 use Webauthn\AuthenticatorAssertionResponseValidator;
 use Webauthn\AuthenticatorAttestationResponse;
 use Webauthn\AuthenticatorAttestationResponseValidator;
+use Webauthn\AuthenticatorSelectionCriteria;
 use Webauthn\CeremonyStep\CeremonyStepManagerFactory;
 use Webauthn\Denormalizer\WebauthnSerializerFactory;
 use Webauthn\Exception\AuthenticatorResponseVerificationException;
@@ -100,7 +101,11 @@ final class Passkey
      */
     public function getAuthenticationOptions(Request $request, Response $response, array $data): Response
     {
-        $publicKeyCredentialRequestOptions = PublicKeyCredentialRequestOptions::create($this->challenge->generateToken());
+        $publicKeyCredentialRequestOptions = PublicKeyCredentialRequestOptions::create(
+            $this->challenge->generateToken(),
+            $this->host,
+            userVerification: PublicKeyCredentialRequestOptions::USER_VERIFICATION_REQUIREMENT_REQUIRED
+        );
         $jsonObject = $this->serializeOptions($publicKeyCredentialRequestOptions);
         $response->getBody()->write($jsonObject);
         return $response;
@@ -226,7 +231,16 @@ final class Passkey
 
         $challenge = $challenge ?? $this->challenge->generateToken();
 
-        return PublicKeyCredentialCreationOptions::create($rpEntity, $userEntity, $challenge);
+        $authenticatorSelectionCriteria = AuthenticatorSelectionCriteria::create(
+            userVerification: AuthenticatorSelectionCriteria::USER_VERIFICATION_REQUIREMENT_REQUIRED,
+            residentKey: AuthenticatorSelectionCriteria::RESIDENT_KEY_REQUIREMENT_REQUIRED,
+        );
+        return PublicKeyCredentialCreationOptions::create(
+            rp: $rpEntity,
+            user: $userEntity,
+            challenge: $challenge,
+            authenticatorSelection: $authenticatorSelectionCriteria
+        );
     }
 
     private function serializeOptions(PublicKeyCredentialOptions $options): string
